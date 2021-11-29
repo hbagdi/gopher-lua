@@ -27,6 +27,13 @@ func loGetPath(env string, defpath string) string {
 	return path
 }
 
+func stat(L *LState, luapath string) (os.FileInfo, error) {
+	if L.Options.FS != nil {
+		return L.Options.FS.Stat(luapath)
+	}
+	return os.Stat(luapath)
+}
+
 func loFindFile(L *LState, name, pname string) (string, string) {
 	name = strings.Replace(name, ".", string(os.PathSeparator), -1)
 	lv := L.GetField(L.GetField(L.Get(EnvironIndex), "package"), pname)
@@ -37,7 +44,7 @@ func loFindFile(L *LState, name, pname string) (string, string) {
 	messages := []string{}
 	for _, pattern := range strings.Split(string(path), ";") {
 		luapath := strings.Replace(pattern, "?", name, -1)
-		if _, err := os.Stat(luapath); err == nil {
+		if _, err := stat(L, luapath); err == nil {
 			return luapath, ""
 		} else {
 			messages = append(messages, err.Error())

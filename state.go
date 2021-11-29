@@ -109,6 +109,14 @@ type Options struct {
 	// If `MinimizeStackMemory` is set, the call stack will be automatically grown or shrank up to a limit of
 	// `CallStackSize` in order to minimize memory usage. This does incur a slight performance penalty.
 	MinimizeStackMemory bool
+
+	// Load lua files from FS instead of OS file-system.
+	FS FS
+}
+
+type FS interface {
+	Open(path string) (io.ReadCloser, error)
+	Stat(path string) (os.FileInfo, error)
 }
 
 /* }}} */

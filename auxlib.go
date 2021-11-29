@@ -340,21 +340,29 @@ func (ls *LState) CallMeta(obj LValue, event string) LValue {
 	return LNil
 }
 
+func (ls *LState) openFile(path string) (io.ReadCloser, error) {
+	if ls.Options.FS != nil {
+		return ls.Options.FS.Open(path)
+	}
+	return os.Open(path)
+}
+
 /* }}} */
 
 /* load and function call operations {{{ */
 
 func (ls *LState) LoadFile(path string) (*LFunction, error) {
-	var file *os.File
+	var file io.Reader
 	var err error
 	if len(path) == 0 {
 		file = os.Stdin
 	} else {
-		file, err = os.Open(path)
-		defer file.Close()
+		f, err := ls.openFile(path)
 		if err != nil {
 			return nil, newApiErrorE(ApiErrorFile, err)
 		}
+		defer f.Close()
+		file = f
 	}
 
 	reader := bufio.NewReader(file)
